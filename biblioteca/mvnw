@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+BASE="$(cd "$(dirname "$0")" && pwd)"
+URL="$(sed -n 's/^distributionUrl=//p' "$BASE/.mvn/wrapper/maven-wrapper.properties" | tr -d '\r')"
+NAME="$(basename "$URL" -bin.zip)"
+DIR="${HOME}/.m2/wrapper/dists/$NAME"
+if [ ! -x "$DIR/$NAME/bin/mvn" ]; then
+  mkdir -p "$DIR"
+  TMP="$DIR/$NAME-bin.zip"
+  if command -v curl >/dev/null 2>&1; then curl -fsSL "$URL" -o "$TMP"; else wget -q "$URL" -O "$TMP"; fi
+  unzip -q -o "$TMP" -d "$DIR"
+  rm -f "$TMP"
+  chmod +x "$DIR/$NAME/bin/mvn"
+fi
+exec "$DIR/$NAME/bin/mvn" "$@"
